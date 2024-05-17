@@ -32,6 +32,7 @@ def bot_app(test=False):
             bot.send_message(call.message.chat.id, 'Выберете метод отображения', reply_markup=markup)
         if call.data in ('all', 'random'):
             show_dish(call, type_id, call.data)
+
     def show_dish(call, type_id, method):
         list_ = get_dish_name_by_type(type_id, test)
         if method == 'random':
