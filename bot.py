@@ -17,7 +17,7 @@ def bot_app(test=False):
     def start(message):
         markup = types.InlineKeyboardMarkup()
         for i in get_types(test):
-            markup.row(types.InlineKeyboardButton(i['type'], callback_data=f'type_{i['id']}'))
+            markup.row(types.InlineKeyboardButton(i['type'], callback_data=f'type_{i["id"]}'))
 
         bot.reply_to(message, "Здравствуйте! Выберите вид блюда:", reply_markup=markup)
 
@@ -25,25 +25,38 @@ def bot_app(test=False):
     def test_callback(call):
         if call.data.split('_')[0] == 'type':
             type_id = call.data.split('_')[1]
-            print(type_id)
             markup = types.InlineKeyboardMarkup()
-            markup.row(types.InlineKeyboardButton('Случайное блюдо', callback_data='random'))
-            markup.row(types.InlineKeyboardButton('Все блюда', callback_data='all'))
+            markup.row(types.InlineKeyboardButton('Случайное блюдо', callback_data=f'random_{type_id}'))
+            markup.row(types.InlineKeyboardButton('Все блюда', callback_data=f'all_{type_id}'))
             bot.send_message(call.message.chat.id, 'Выберете метод отображения', reply_markup=markup)
-        if call.data in ('all', 'random'):
-            show_dish(call, type_id, call.data)
+        if call.data.split("_")[0] in ('all', 'random'):
+            show_dish(call, call.data.split("_")[1], call.data.split("_")[0])
+        if call.data.isdigit():
+            show_dish(call, int(call.data), 'show')
 
-    def show_dish(call, type_id, method):
-        list_ = get_dish_name_by_type(type_id, test)
+
+
+    def show_dish(call, id, method):
+        list_ = get_dish_name_by_type(id, test)
         if method == 'random':
             dish = random.choice(list_)
 
             markup = types.ReplyKeyboardMarkup()
             markup.add(types.KeyboardButton('Вернуться назад'))
-            bot.send_photo(call.message.chat.id, dish['photo_id'], caption=f'{dish['name']} \n {dish['ingredients']}')
+            bot.send_photo(call.message.chat.id, dish['photo_id'], caption=f'{dish["name"]} \n {dish["ingredients"]}')
             bot.send_message(call.message.chat.id, dish['recipe'], reply_markup=markup)
+        if method == 'all':
+            markup = types.InlineKeyboardMarkup()
+            for dish in list_:
+                markup.row(types.InlineKeyboardButton(dish['name'], callback_data=dish['id']))
+            bot.send_message(call.message.chat.id, "Выберите блюдо", reply_markup=markup)
 
-
+        if method == "show":
+            dish = get_dish_by_id(id, test)[0]
+            markup = types.ReplyKeyboardMarkup()
+            markup.add(types.KeyboardButton('Вернуться назад'))
+            bot.send_photo(call.message.chat.id, dish['photo_id'], caption=f'{dish["name"]} \n {dish["ingredients"]}')
+            bot.send_message(call.message.chat.id, dish['recipe'], reply_markup=markup)
 
     @bot.message_handler(commands=['admin'])
     def admin_start(message):
@@ -58,7 +71,6 @@ def bot_app(test=False):
             bot.reply_to(message, "Добро пожаловать в админ панель. Выберите действие:", reply_markup=markup)
         else:
             bot.reply_to(message, "У вас нет прав(администратора)")
-            print(get_admins(test)['all_admins'])
 
     @bot.message_handler(func=lambda message: message.text in context.admin_commands and message.from_user.username in get_admins(test)['all_admins'])
     def admin(message):
@@ -91,6 +103,7 @@ def bot_app(test=False):
 
         dish = dict()
         dish['type'] = message.text
+        dish['type_id'] = int([i['id'] for i in get_types(test) if i['type'] == message.text][0])
         bot.reply_to(message, "Отправьте название блюда", reply_markup=types.ReplyKeyboardRemove())
         bot.register_next_step_handler(message, add_name, dish)
 
@@ -136,6 +149,6 @@ def bot_app(test=False):
 
     @bot.message_handler(func=lambda message: (message.text not in context.admin_commands + context.core_admin_commands) and message.text)
     def error(message):
-        bot.register_next_step_handler(message, start)
+        start(message)
 
     bot.polling(non_stop=True, interval=0)

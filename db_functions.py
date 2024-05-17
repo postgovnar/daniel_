@@ -50,7 +50,6 @@ def get_admins(test):
         ''')
 
     admins = [i['admin'] for i in make_dict_list(cursor.fetchall(), ('id', 'admin'))]
-    print(admins)
     connection.close()
 
     return {
@@ -59,6 +58,25 @@ def get_admins(test):
         'all_admins': admins + context.core_admins
         }
 
+
+def get_dish_by_id(id_, test):
+    if not test:
+        context = config
+    else:
+        context = test_config
+
+    connection = sqlite3.connect(context.db_path)
+    cursor = connection.cursor()
+
+    cursor.execute(f'''
+    SELECT * FROM DISHES WHERE ID = {id_}
+    ''')
+
+    types = make_dict_list(cursor.fetchall(), ('id', 'type_id', 'name', 'ingredients', 'recipe', 'photo_id', 'add_by'))
+
+    connection.close()
+
+    return types
 
 def get_dish_name_by_type(type_id, test):
     if not test:
@@ -70,10 +88,10 @@ def get_dish_name_by_type(type_id, test):
     cursor = connection.cursor()
 
     cursor.execute(f'''
-    SELECT ID, NAME FROM DISHES WHERE TYPEID = {type_id}
+    SELECT * FROM DISHES WHERE TYPEID = {type_id}
     ''')
 
-    types = make_dict_list(cursor.fetchall(), ('id', 'NAME'))
+    types = make_dict_list(cursor.fetchall(), ('id', 'type_id', 'name', 'ingredients', 'recipe', 'photo_id', 'add_by'))
 
     connection.close()
 
@@ -89,11 +107,12 @@ def add_dish(dish, test):
     connection = sqlite3.connect(context.db_path)
     cursor = connection.cursor()
 
+
+
     cursor.execute(f'''
             INSERT INTO DISHES (NAME, INGREDIENTS, RECIPE, PHOTOID, ADDBY, TYPEID) 
             VALUES ('{dish['name']}', '{dish['ingredients']}', '{dish['recipe']}', 
-            '{dish['photo_id']}', '{dish['add_by']}',
-            (SELECT ID FROM TYPES WHERE TYPE = '�������'));
+            '{dish['photo_id']}', '{dish['add_by']}', '{dish["type_id"]}');
             ''')
 
     connection.commit()
