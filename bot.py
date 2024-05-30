@@ -52,7 +52,7 @@ def bot_app(test=False):
             bot.send_message(call.message.chat.id, "Выберите блюдо", reply_markup=markup)
 
         if method == "show":
-            dish = get_dish_by_id(id, test)[0]
+            dish = get_dish_by_id(id, test)
             markup = types.ReplyKeyboardMarkup()
             markup.add(types.KeyboardButton('Вернуться назад'))
             bot.send_photo(call.message.chat.id, dish['photo_id'], caption=f'{dish["name"]} \n {dish["ingredients"]}')
@@ -130,7 +130,7 @@ def bot_app(test=False):
         dish['add_by'] = message.from_user.username
         add_dish(dish, test)
         bot.reply_to(message, "Новое блюдо добавлено")
-        admin(message)
+        admin_start(message)
 
     @bot.message_handler(func=lambda message: message.text in context.core_admin_commands and message.from_user.username in get_admins(test)['core_admins'])
     def core_admin(message):

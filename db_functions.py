@@ -76,7 +76,8 @@ def get_dish_by_id(id_, test):
 
     connection.close()
 
-    return types
+    return types[0]
+
 
 def get_dish_name_by_type(type_id, test):
     if not test:

@@ -10,3 +10,4 @@ with open('test_config.json', 'r', encoding="utf-8") as config_file:
     data = config_file.read()
 
 test_config = json.loads(data, object_hook=lambda d: SimpleNamespace(**d))
+

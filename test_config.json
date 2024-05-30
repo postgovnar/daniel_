@@ -1,4 +1,7 @@
 {
     "token": "6688773256:AAH9DFfJLUDJITZBNViqMPmGBvveO06LYAw",
-    "db_path": "cuisine.db"
+    "db_path": "cuisine.db",
+    "core_admins": ["SamPeach", "pankratyev_dev"],
+    "core_admin_commands": ["Добавить администратора", "Удалить администратора"],
+    "admin_commands": ["Добавить блюдо", "Изменить блюдо", "Режим пользователя"]
 }
